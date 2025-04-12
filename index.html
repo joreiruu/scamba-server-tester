@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Spam Classifier</title>
+  <style>
+    body { font-family: Arial; margin: 40px; }
+    input, button { padding: 10px; font-size: 16px; width: 300px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h2>SMS Spam Classifier</h2>
+  <input type="text" id="message" placeholder="Enter your message here" />
+  <br />
+  <button onclick="classify()">Check</button>
+  <p id="result"></p>
+
+  <script>
+    async function classify() {
+      const message = document.getElementById('message').value;
+      const response = await fetch('http://127.0.0.1:5000/classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message })
+      });
+      const data = await response.json();
+      document.getElementById('result').innerText = "Result: " + data.result;
+    }
+  </script>
+</body>
+</html>
