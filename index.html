@@ -91,12 +91,22 @@
         const response = await fetch('https://bd58-136-158-102-114.ngrok-free.app/classify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: message })
+          body: JSON.stringify({ text: message })  // Changed 'message' to 'text' to match server
         });
 
         const data = await response.json();
-        resultElement.innerText = "Result: " + data.result;
-        resultElement.style.color = data.result === "spam" ? "red" : "green";
+        
+        if (data.error) {
+          resultElement.innerText = `Error: ${data.error}`;
+          resultElement.style.color = "red";
+          return;
+        }
+
+        const isSpam = data.predicted_class === 1;
+        const confidence = data.confidence.toFixed(2);
+        
+        resultElement.innerText = `Result: ${isSpam ? 'SPAM' : 'HAM'} (${confidence}% confidence)`;
+        resultElement.style.color = isSpam ? "red" : "green";
       } catch (error) {
         resultElement.innerText = "Error: Could not connect to server.";
         resultElement.style.color = "red";
