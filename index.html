@@ -1,118 +1,51 @@
+ -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SMS Spam Classifier</title>
+    <title>Multi-Model Spam Classifier</title>
+    <!-- ...existing style code... -->
     <style>
-        * { box-sizing: border-box; }
-        body {
-            margin: 0; padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 500px;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        h2 { 
-            margin-bottom: 0.5rem; 
-            color: #333; 
-        }
-        .input-group {
-            margin-bottom: 1rem;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #555;
-            font-weight: 500;
-        }
-        select, textarea {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        button {
-            width: 100%;
-            padding: 12px 20px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover { 
-            background-color: #45a049; 
-        }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        .result-container {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-            display: none;
-        }
-        .result-text {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-        .confidence-text {
-            font-size: 14px;
+        /* ...existing styles... */
+        .model-info {
+            font-size: 12px;
             color: #666;
+            margin-top: 4px;
         }
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .probability-bars {
+            margin-top: 1rem;
+            text-align: left;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .prob-bar {
+            margin: 8px 0;
         }
+        .prob-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .prob-fill {
+            height: 8px;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .not-spam-bar { background-color: #4CAF50; }
+        .spam-bar { background-color: #f44336; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h2>SMS Spam Classifier</h2>
+            <h2>Multi-Model Spam Classifier</h2>
+            <p class="model-info">Compare results from different models</p>
         </div>
         
         <div class="input-group">
             <label for="model">Select Model:</label>
             <select id="model">
-                <option value="xlmr">XLM-R Model</option>
-                <option value="bert">BERT Model</option>
-                <option value="mbert">mBERT Model</option>
+                <option value="xlmr">XLM-R (Multi-lingual)</option>
+                <option value="mbert">mBERT (Multi-lingual)</option>
             </select>
         </div>
 
@@ -126,10 +59,47 @@
         <div class="result-container" id="resultContainer">
             <div class="result-text" id="resultText"></div>
             <div class="confidence-text" id="confidenceText"></div>
+            <div class="probability-bars">
+                <div class="prob-bar">
+                    <div class="prob-label">
+                        <span>Not Spam</span>
+                        <span id="notSpamProb">0%</span>
+                    </div>
+                    <div class="prob-fill not-spam-bar" id="notSpamBar" style="width: 0%"></div>
+                </div>
+                <div class="prob-bar">
+                    <div class="prob-label">
+                        <span>Spam</span>
+                        <span id="spamProb">0%</span>
+                    </div>
+                    <div class="prob-fill spam-bar" id="spamBar" style="width: 0%"></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
+        // Check available models on load
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('http://localhost:5000/available_models');
+                const data = await response.json();
+                
+                const modelSelect = document.getElementById('model');
+                modelSelect.innerHTML = ''; // Clear existing options
+                
+                data.models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.text = model === 'xlmr' ? 'XLM-R (Multi-lingual)' : 
+                                 model === 'mbert' ? 'mBERT (Multi-lingual)' : model;
+                    modelSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading models:', error);
+            }
+        });
+
         async function classify() {
             const message = document.getElementById('message').value.trim();
             const model = document.getElementById('model').value;
@@ -137,6 +107,12 @@
             const resultContainer = document.getElementById('resultContainer');
             const resultText = document.getElementById('resultText');
             const confidenceText = document.getElementById('confidenceText');
+            
+            // Get probability elements
+            const notSpamProb = document.getElementById('notSpamProb');
+            const spamProb = document.getElementById('spamProb');
+            const notSpamBar = document.getElementById('notSpamBar');
+            const spamBar = document.getElementById('spamBar');
 
             if (!message) {
                 alert('Please enter a message.');
@@ -166,12 +142,23 @@
 
                 // Show result
                 resultContainer.style.display = 'block';
-                resultContainer.style.backgroundColor = data.predicted_class === 1 ? '#ffebee' : '#e8f5e9';
+                resultContainer.style.backgroundColor = 
+                    data.predicted_class === 1 ? '#ffebee' : '#e8f5e9';
                 
                 resultText.innerText = data.predicted_class === 1 ? 'SPAM DETECTED!' : 'NOT SPAM';
                 resultText.style.color = data.predicted_class === 1 ? '#c62828' : '#2e7d32';
                 
                 confidenceText.innerText = `Confidence: ${data.confidence.toFixed(1)}%`;
+
+                // Update probability bars
+                const notSpamProbValue = (data.probabilities.ham * 100).toFixed(1);
+                const spamProbValue = (data.probabilities.scam * 100).toFixed(1);
+                
+                notSpamProb.innerText = `${notSpamProbValue}%`;
+                spamProb.innerText = `${spamProbValue}%`;
+                
+                notSpamBar.style.width = `${notSpamProbValue}%`;
+                spamBar.style.width = `${spamProbValue}%`;
 
             } catch (error) {
                 resultContainer.style.display = 'block';
@@ -179,6 +166,12 @@
                 resultText.innerText = 'Error';
                 resultText.style.color = '#e65100';
                 confidenceText.innerText = error.message;
+                
+                // Reset probability bars
+                notSpamProb.innerText = '0%';
+                spamProb.innerText = '0%';
+                notSpamBar.style.width = '0%';
+                spamBar.style.width = '0%';
             } finally {
                 // Reset button
                 submitBtn.disabled = false;
