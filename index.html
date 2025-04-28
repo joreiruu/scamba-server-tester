@@ -190,7 +190,7 @@
             <div class="probability-bars">
                 <div class="prob-bar">
                     <div class="prob-label">
-                        <span>Ham</span>
+                        <span>Not Spam</span>
                         <span id="notSpamProb">0%</span>
                     </div>
                     <div class="prob-fill not-spam-bar" id="notSpamBar" style="width: 0%"></div>
@@ -213,19 +213,12 @@
         function getModelInfo(model) {
             const info = {
                 xlmr: {
-                    name: 'XLM-RoBERTa',
-                    description: 'Multi-lingual model (100+ languages)',
-                    performance: '94% accuracy'
-                },
+                    name: 'XLM-RoBERTa'
                 mbert: {
-                    name: 'mBERT',
-                    description: 'Multi-lingual BERT (104 languages)',
-                    performance: '89% accuracy'
+                    name: 'mBERT'
                 },
                 bert: {
-                    name: 'BERT',
-                    description: 'English-only BERT model',
-                    performance: '86% accuracy'
+                    name: 'BERT'
                 }
             };
             return info[model] || { name: model, description: '', performance: '' };
