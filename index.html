@@ -139,25 +139,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        .model-info-text {
-            font-size: 12px;
-            color: #666;
-            margin-top: 4px;
-            font-style: italic;
-        }
-        
-        .model-performance {
-            display: inline-block;
-            font-size: 12px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: 8px;
-        }
-        
-        .performance-xlmr { background-color: #e3f2fd; color: #1565c0; }
-        .performance-mbert { background-color: #e8f5e9; color: #2e7d32; }
-        .performance-bert { background-color: #fff3e0; color: #e65100; }
     </style>
 </head>
 <body>
@@ -174,7 +155,6 @@
                 <option value="mbert">mBERT</option>
                 <option value="bert">BERT</option>
             </select>
-            <p class="model-info-text" id="modelInfo"></p>
         </div>
 
         <div class="input-group">
@@ -212,32 +192,23 @@
 
         function getModelInfo(model) {
             const info = {
-                 xlmr: {
-                     name: 'XLM-RoBERTa',
-                     description: '',
-                     performance: ''
-                 },
-                     name: 'XLM-RoBERTa'
-                 mbert: {
-                     name: 'mBERT',
-                     description: '',
-                     performance: ''
-                     name: 'mBERT'
-                 },
-                 bert: {
-                     name: 'BERT',
-                     description: '',
-                     performance: ''
-                     name: 'BERT'
+                xlmr: {
+                    name: 'XLM-RoBERTa'
+                },
+                mbert: {
+                    name: 'mBERT'
+                },
+                bert: {
+                    name: 'BERT'
                 }
             };
-            return info[model] || { name: model, description: '', performance: '' };
+            return info[model] || { name: model };
         }
 
         function updateModelInfo(model) {
             const info = getModelInfo(model);
             const modelInfo = document.getElementById('modelInfo');
-            modelInfo.innerHTML = `${info.description} <span class="model-performance performance-${model}">${info.performance}</span>`;
+            modelInfo.textContent = info.name;
         }
 
         async function loadModels() {
