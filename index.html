@@ -212,13 +212,23 @@
 
         function getModelInfo(model) {
             const info = {
-                xlmr: {
-                    name: 'XLM-RoBERTa'
-                mbert: {
-                    name: 'mBERT'
-                },
-                bert: {
-                    name: 'BERT'
+                 xlmr: {
+                     name: 'XLM-RoBERTa',
+                     description: '',
+                     performance: ''
+                 },
+                     name: 'XLM-RoBERTa'
+                 mbert: {
+                     name: 'mBERT',
+                     description: '',
+                     performance: ''
+                     name: 'mBERT'
+                 },
+                 bert: {
+                     name: 'BERT',
+                     description: '',
+                     performance: ''
+                     name: 'BERT'
                 }
             };
             return info[model] || { name: model, description: '', performance: '' };
